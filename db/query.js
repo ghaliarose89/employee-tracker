@@ -7,7 +7,7 @@ db.query(`SELECT * FROM department`, (err,row => {
     console.table('Department name','Department Id',row);
 
 }));
-}
+};
 
 
 

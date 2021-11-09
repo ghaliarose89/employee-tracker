@@ -2,7 +2,7 @@ const cTable = require('console.table');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const db = require('./db/connection');
-//const query = require ('./db/query');
+const viewAllDep = require ('./db/query');
 
 inquirer.prompt(
   [
