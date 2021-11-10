@@ -2,9 +2,10 @@ const db = require("./connection");
 const cTable = require('console.table');
 
 function viewAllDep() {
-db.query(`SELECT * FROM department`, (err,row) => {
-    if (err) throw err;
-    console.table(row);
+  const sql = `SELECT * FROM department`;
+db.query(sql, (err,row) => {
+    if (err) console.log (err);
+    console.log(row);
 
 });
 };

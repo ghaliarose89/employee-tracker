@@ -3,7 +3,6 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const db = require('./db/connection');
 const viewAllDep = require ('./db/query');
-
 inquirer.prompt(
   [
     {
@@ -19,14 +18,12 @@ inquirer.prompt(
         "add a role",
         "add a department"
       ]
-
-
     }
+    
   ])
   .then(data => {
     switch (data.choice) {
       case "view all departments":
-       console.log(data);
        viewAllDep();
         break;
       case "view all roles":
@@ -48,16 +45,9 @@ inquirer.prompt(
         addDep();
         break;
     }
-  })
-
-
-
-
-
-
-
+  });
 
 db.connect(err => {
- // if (err) throw err;
+ if (err) throw err;
   console.log('Database connected.');
 })
