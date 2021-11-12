@@ -67,11 +67,10 @@ function viewAllRoles() {
   });
 }
 function viewAllEmployees() {
-  const sql = `SELECT  employee.id, employee.first_name, employee.last_name,
-    role.title AS Job_title, role.salary, department.dep_name As Department,employee.manager_id
-    FROM employee, role, department 
-    WHERE department.id = role.department_id 
-                     AND role.id = employee.role_id ORDER BY employee.id;
+  const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.dep_name AS department, 
+  CONCAT(e.first_name, ' ' ,e.last_name) AS Manager FROM employee LEFT JOIN role ON employee.role_id = role.id 
+  LEFT JOIN department ON role.department_id = department.id  left
+  join employee e on employee.manager_id = e.id;
     `;
   db.query(sql, (err, row) => {
     if (err) console.log(err);
@@ -101,6 +100,14 @@ function addDep() {
 
 
 function addRole() {
+  const  sql= `SELECT dep_name FROM department;`;
+   db.query(sql,(err,rows)=>{
+    if (err) throw err
+    //console.table(rows);
+    
+  }).then(data =>{console.log(data)})
+  //console.log(department);
+  //query the data base for existing department 
   inquirer.prompt([
     {
       type: "input",
@@ -109,29 +116,31 @@ function addRole() {
     },
 
     {
-      type: "list",
+      type: "input",
       message: "Enter  the Salary for this role",
       name: "salaryNum",
     },
     {
-      type: "input",
+      type: "list",
       message: "Please Choose the Department for this role",
-      choices: ['Management', 'Sales', 'HR', 'Create a new department']
+      choices: ['Management', 'Sales', 'HR', ],
+      name:'depChoice',
     },
   ])
     .then(data => {
       const roleName = data.roleName;
-      const depName = data.choices;
+      const depName = data.depChoice;
       const salaryNum = data.salaryNum;
+      let dep_id=0;
       switch (depName) {
         case 'Management':
-          let dep_id = 1;
+           dep_id = 1;
           break;
         case 'Sales':
-          let dep_id = 2;
+           dep_id = 2;
           break;
         case 'HR':
-          let dep_id = 3;
+           dep_id = 3;
           break;
         case 'Create a new department':
           addDep();
