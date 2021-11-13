@@ -5,52 +5,53 @@ const db = require('./db/connection');
 startApp();
 function startApp() {
   inquirer.prompt(
-  [
-    {
-      type: "list",
-      message: "What would you like to do?",
-      name: "choice",
-      choices: [
-        "view all departments",
-        "view all roles",
-        "view all employees",
-        "update an employee role",
-        "add an employee",
-        "add a role",
-        "add a department"
-      ]
-    }
+    [
+      {
+        type: "list",
+        message: "What would you like to do?",
+        name: "choice",
+        choices: [
+          "view all departments",
+          "view all roles",
+          "view all employees",
+          "update an employee role",
+          "add an employee",
+          "add a role",
+          "add a department"
+        ]
+      }
 
-  ])
-  .then(data => {
-    switch (data.choice) {
-      case "view all departments":
-        viewAllDep();
-        break;
-      case "view all roles":
-        viewAllRoles();
-        break;
-      case "view all employees":
-        viewAllEmployees();
-        break;
-      case "update an employee role":
-        UpdateEmployee();
-        break;
-      case "add an employee":
-        addEmployee();
-        break;
-      case "add a role":
-        addRole();
-        break;
-      case "add a department":
-        addDep();
-        break;
-    }
-  });}
+    ])
+    .then(data => {
+      switch (data.choice) {
+        case "view all departments":
+          viewAllDep();
+          break;
+        case "view all roles":
+          viewAllRoles();
+          break;
+        case "view all employees":
+          viewAllEmployees();
+          break;
+        case "update an employee role":
+          UpdateEmployee();
+          break;
+        case "add an employee":
+          addEmployee();
+          break;
+        case "add a role":
+          addRole();
+          break;
+        case "add a department":
+          addDep();
+          break;
+      }
+    });
+}
 
-  async function showDepartment(){
-   
-  }
+async function showDepartment() {
+
+}
 function viewAllDep() {
   const sql = `SELECT * FROM department`;
   db.query(sql, (err, row) => {
@@ -104,50 +105,99 @@ function addDep() {
 
 
 function addRole() {
-  let dep =[];
-  db.query(('SELECT * FROM department'), (err,rows)=>{
-    if (err) console.log (err);
-      dep = rows.map(rows => dep.push(rows.dep_name));
-      console.log(dep);
-      inquirer.prompt([
-        {
-          type: "input",
-          message: "Please enter the Role name",
-          name: "roleName",
-        },
-    
-        {
-          type: "input",
-          message: "Enter  the Salary for this role",
-          name: "salaryNum",
-        },
-        {
-          type: "list",
-          name:'depChoice',
-          message: "Please Choose the Department for this role",
-          choices: dep,
-          
-        },
-      ])
-        .then(data => {
-          const roleName = data.roleName;
-          const depName = data.depChoice + 1;
-          const salaryNum = data.salaryNum;
-         
-          const sql = `INSERT INTO role (title,salary ,department_id) valueS (?,?,?) `;
-          const value = [roleName, salaryNum, depName];
-          db.query(sql, value, (err, rows) => {
-            if (err) throw err;
-            console.log('New Role has been created');
-          })
-        });
-    
-  })
-  
-  
+  let dep = [];
+  db.query((`SELECT * FROM department`), (err, rows) => {
+    if (err) console.log(err);
+    console.log(rows);
+    dep = rows.map(rows => ({ name: rows.dep_name, value: rows.id }));
+    console.log(dep);
+    inquirer.prompt([
+      {
+        type: "input",
+        message: "Please enter the Role name",
+        name: "roleName",
+      },
+
+      {
+        type: "input",
+        message: "Enter  the Salary for this role",
+        name: "salaryNum",
+      },
+      {
+        type: "list",
+        name: 'depChoice',
+        message: "Please Choose the Department for this role",
+        choices: dep,
+
+      },
+    ])
+      .then(data => {
+        console.log(data);
+        const roleName = data.roleName;
+        const depName = data.depChoice;
+        const salaryNum = data.salaryNum;
+
+        const sql = `INSERT INTO role (title,salary ,department_id) valueS (?,?,?) `;
+        const value = [roleName, salaryNum, depName];
+        db.query(sql, value, (err, rows) => {
+          if (err) throw err;
+          console.log('New Role has been created');
+        })
+      });
+
+  });
+
+
 };
 
+function addEmployee() {
+  let dep = [];
+  db.query((`SELECT title  FROM role`), (err, rows) => {
+    if (err) console.log(err);
+    emp = rows.map(rows => ({ name: rows.title }));
 
+    const sql = `SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
+    FROM employee inner JOIN employee manager on manager.id = employee.manager_id;`;
+    db.query((sql), (err, rows) => {
+      if (err) console.log(err);
+  
+      emp = rows.map(rows => ({ name: rows.title }));
+    });
+    inquirer.prompt([
+      {
+        type: "input",
+        message: "Please enter the Employee first name",
+        name: "employeeName",
+      },
+
+      {
+        type: "input",
+        message: "Please enter the Employee last name",
+        name: "employeeLastName",
+      },
+      {
+        type: "list",
+        name: 'depChoice',
+        message: "Please Choose the Department for this role",
+        choices: emp,
+
+      },
+    ])
+      .then(data => {
+        console.log(data);
+        const roleName = data.roleName;
+        const depName = data.depChoice;
+        const salaryNum = data.salaryNum;
+
+        const sql = `INSERT INTO role (title,salary ,department_id) valueS (?,?,?) `;
+        const value = [roleName, salaryNum, depName];
+        db.query(sql, value, (err, rows) => {
+          if (err) throw err;
+          console.log('New Role has been created');
+        })
+      });
+  });
+};
 
 
 
