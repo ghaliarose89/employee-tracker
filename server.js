@@ -150,19 +150,19 @@ function addRole() {
 
 };
 
-function addEmployee() {
-  let dep = [];
-  db.query((`SELECT title  FROM role`), (err, rows) => {
+function UpdateEmployee(){
+  let role  = [];
+  let manager = [];
+  db.query((`SELECT title ,id  FROM role`), (err, rows) => {
     if (err) console.log(err);
-    emp = rows.map(rows => ({ name: rows.title }));
-
-    const sql = `SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
-    FROM employee inner JOIN employee manager on manager.id = employee.manager_id;`;
+    role = rows.map(rows => ({ name: rows.title , value: rows.id}));
+    console.log (role);
+    const sql = `SELECT first_name, last_name, id FROM employee WHERE manager_id IS NULL`;
     db.query((sql), (err, rows) => {
       if (err) console.log(err);
-  
-      emp = rows.map(rows => ({ name: rows.title }));
-    });
+      manager = rows.map(rows => ( { name: rows.first_name + ' '+rows.last_name ,value:rows.id } ));
+      console.log (manager);
+    
     inquirer.prompt([
       {
         type: "input",
@@ -177,25 +177,98 @@ function addEmployee() {
       },
       {
         type: "list",
-        name: 'depChoice',
-        message: "Please Choose the Department for this role",
-        choices: emp,
+        name: 'roleChoice',
+        message: "Please Choose the Role for this employee",
+        choices: role,
 
       },
+      {
+        type: "list",
+        name: 'depChoice',
+        message: "Please Choose a manager for this employee",
+        choices: manager,
+
+      },
+
     ])
       .then(data => {
         console.log(data);
-        const roleName = data.roleName;
-        const depName = data.depChoice;
-        const salaryNum = data.salaryNum;
-
-        const sql = `INSERT INTO role (title,salary ,department_id) valueS (?,?,?) `;
-        const value = [roleName, salaryNum, depName];
+        const firstName = data.employeeName;
+        const lastName = data.employeeLastName;
+        const roleChoice = data.roleChoice;
+        const managervlaue = data.manager;
+        const sql = `INSERT INTO employee (first_name ,last_name , role_id ,manager_id) valueS (?,?,?,?) `;
+        const value = [firstName, lastName, roleChoice,managervlaue];
         db.query(sql, value, (err, rows) => {
           if (err) throw err;
-          console.log('New Role has been created');
+          console.log('New Employee has been added');
         })
       });
+    });
+  });
+};
+
+
+
+
+
+
+function addEmployee() {
+  let role  = [];
+  let manager = [];
+  db.query((`SELECT title ,id  FROM role`), (err, rows) => {
+    if (err) console.log(err);
+    role = rows.map(rows => ({ name: rows.title , value: rows.id}));
+    console.log (role);
+    const sql = `SELECT first_name, last_name, id FROM employee;`;
+    db.query((sql), (err, rows) => {
+      if (err) console.log(err);
+      manager = rows.map(rows => ( { name: rows.first_name + ' '+rows.last_name ,value:rows.id } ));
+      console.log (manager);
+    
+    inquirer.prompt([
+      {
+        type: "input",
+        message: "Please enter the Employee first name",
+        name: "employeeName",
+      },
+
+      {
+        type: "input",
+        message: "Please enter the Employee last name",
+        name: "employeeLastName",
+      },
+      {
+        type: "list",
+        name: 'roleChoice',
+        message: "Please Choose the Role for this employee",
+        choices: role,
+
+      },
+      {
+        type: "list",
+        name: 'depChoice',
+        message: "Please Choose a manager for this employee",
+        choices: manager,
+
+      },
+
+    ])
+      .then(data => {
+        console.log(data);
+        const firstName = data.employeeName;
+        const lastName = data.employeeLastName;
+        const roleChoice = data.roleChoice;
+        const managervlaue = data.manager;
+        console.log(managervlaue);
+        const sql = `INSERT INTO employee (first_name ,last_name , role_id ,manager_id) valueS (?,?,?,?) `;
+        const value = [firstName, lastName, roleChoice,managervlaue];
+        db.query(sql, value, (err, rows) => {
+          if (err) throw err;
+          console.log('New Employee has been added');
+        })
+      });
+    });
   });
 };
 
