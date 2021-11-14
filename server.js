@@ -1,8 +1,25 @@
+
+// --- importing dependienses----
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const db = require('./db/connection');
-startApp();
+const figlet = require('figlet');
+const chalk = require('chalk');
+
+// --- connecting sql database and starting the app----
+db.connect(err => {
+  if (err) throw err;
+  console.log(chalk.red.bold(`====================================================================================`));
+  console.log(``);
+  console.log(chalk.blueBright.bold(figlet.textSync('Employee Tracker')));
+  console.log(``);
+  console.log(`                                                          ` + chalk.yellowBright.bold('Created By: Ghalia Sami'));
+  console.log(``);
+  console.log(chalk.red.bold(`====================================================================================`));
+  startApp();
+});
+
 function startApp() {
   inquirer.prompt(
     [
@@ -14,10 +31,11 @@ function startApp() {
           "View All Departments",
           "View All Roles",
           "View all Employees",
-          "Update an Employee role",
           "Add an Employee",
           "Add a Role",
-          "Add a Department"
+          "Add a Department",
+          "Update an Employee role",
+          "Exit the App"
         ]
       }
 
@@ -45,12 +63,16 @@ function startApp() {
         case "Add a Department":
           addDep();
           break;
+        case "Exit the App":
+         db.end();
+          break;
       }
     });
 
 };
 
 
+// --- View all department function ----
 function viewAllDep() {
   const sql = `SELECT * FROM department`;
   db.query(sql, (err, row) => {
@@ -58,20 +80,23 @@ function viewAllDep() {
     console.table(row);
     startApp();
   });
- 
+
 };
+// --- View all department function ----
 function viewAllRoles() {
   const sql = `SELECT  role.id, role.title, role.salary, department.dep_name AS Department_name 
     FROM role LEFT JOIN department 
     ON role.department_id = department.id; `;
+    // --- sql query ----
   db.query(sql, (err, row) => {
     if (err) console.log(err);
     console.table(row);
     startApp();
   });
- 
+
 };
 
+// --- View all employees function ----
 function viewAllEmployees() {
   const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.dep_name
   AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
@@ -79,13 +104,17 @@ function viewAllEmployees() {
    LEFT JOIN department on role.department_id = department.id 
    LEFT JOIN employee manager on manager.id = employee.manager_id;
     `;
+    
+// --- sql query ----
   db.query(sql, (err, row) => {
     if (err) console.log(err);
     console.table(row);
     startApp();
   });
- 
+
 };
+
+// --- Add department function ----
 function addDep() {
   inquirer.prompt(
     [{
@@ -95,21 +124,24 @@ function addDep() {
     }]
   ).then(data => {
     const depName = data.depName;
+    // --- query to seed a new field ----
     const sql = `insert into department (dep_name) value (?);`;
     db.query(sql, depName, (err, row) => {
       if (err) console.log(err);
-      console.table('***********'+depName + ' is added to the department table ***********','\n');
+      console.table('***********' + depName + ' is added to the department table ***********', '\n');
       startApp();
     });
   });
- 
+
 };
 
+// --- View add role function ----
 function addRole() {
   let dep = [];
   db.query((`SELECT * FROM department`), (err, rows) => {
     if (err) console.log(err);
     dep = rows.map(rows => ({ name: rows.dep_name, value: rows.id }));
+    // --- dep has all the dep_id----
     inquirer.prompt([
       {
         type: "input",
@@ -138,25 +170,27 @@ function addRole() {
         const value = [roleName, salaryNum, depName];
         db.query(sql, value, (err, rows) => {
           if (err) throw err;
-          console.log('********** New Role has been created **********','\n');
+          console.log('********** New Role has been created **********', '\n');
           startApp();
         })
       });
-   
+
   });
 
 };
 
+// ---Update Employee function ----
 function UpdateEmployee() {
   let role = [];
   let employee = [];
   db.query((`SELECT title ,id  FROM role`), (err, rows) => {
     if (err) console.log(err);
     role = rows.map(rows => ({ name: rows.title, value: rows.id }));
-
-    const sql = `SELECT first_name, last_name, id FROM employee WHERE manager_id IS NULL`;
+    // --- Query to get all roles to pick ----
+    const sql = `SELECT first_name, last_name, id FROM employee;`;
     db.query((sql), (err, rows) => {
       if (err) console.log(err);
+      // --- Query to get all employees to pick ----
       employee = rows.map(rows => ({ name: rows.first_name + ' ' + rows.last_name, value: rows.id }));
       inquirer.prompt([
         {
@@ -182,7 +216,7 @@ function UpdateEmployee() {
           const sql = `UPDATE employee SET role_id=${roleChoice} WHERE id=${employeeId};`;
           db.query(sql, (err, rows) => {
             if (err) throw err;
-            console.log('************* The employee is updated *************','\n');
+            console.log('************* The employee is updated *************', '\n');
             startApp();
           })
         });
@@ -190,12 +224,15 @@ function UpdateEmployee() {
   });
 };
 
+// --- Add empolyee function----
 function addEmployee() {
   let role = [];
   let manager = [];
+  // --- Query to get all roles to pick ----
   db.query((`SELECT title ,id  FROM role`), (err, rows) => {
     if (err) console.log(err);
     role = rows.map(rows => ({ name: rows.title, value: rows.id }));
+     // --- Query to get all employees to pick ----
     const sql = `SELECT first_name, last_name, id FROM employee;`;
     db.query((sql), (err, rows) => {
       if (err) console.log(err);
@@ -238,7 +275,7 @@ function addEmployee() {
           const value = [firstName, lastName, roleChoice, managervlaue];
           db.query(sql, value, (err, rows) => {
             if (err) throw err;
-            console.log('************** New Employee has been added **************','\n');
+            console.log('************** New Employee has been added **************', '\n');
             startApp();
           })
         });
@@ -246,8 +283,5 @@ function addEmployee() {
   });
 };
 
-db.connect(err => {
-  if (err) throw err;
-  console.log('Database connected.');
-})
+
 
